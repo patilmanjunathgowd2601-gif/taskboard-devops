@@ -36,15 +36,13 @@ jobs:
 
       - name: Build and push backend image
         run: |
-          docker build -t $ECR_REGISTRY/taskboard-backend:${{ github.sha }} -t $ECR_REGISTRY/taskboard-backend:latest ./backend
+          docker build -t $ECR_REGISTRY/taskboard-backend:${{ github.sha }} ./backend
           docker push $ECR_REGISTRY/taskboard-backend:${{ github.sha }}
-          docker push $ECR_REGISTRY/taskboard-backend:latest
 
       - name: Build and push frontend image
         run: |
-          docker build -t $ECR_REGISTRY/taskboard-frontend:${{ github.sha }} -t $ECR_REGISTRY/taskboard-frontend:latest ./frontend
+          docker build -t $ECR_REGISTRY/taskboard-frontend:${{ github.sha }} ./frontend
           docker push $ECR_REGISTRY/taskboard-frontend:${{ github.sha }}
-          docker push $ECR_REGISTRY/taskboard-frontend:latest
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
