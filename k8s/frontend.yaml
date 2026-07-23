@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: taskboard-frontend:local
-          imagePullPolicy: Never
+          image: 329447598191.dkr.ecr.ap-south-1.amazonaws.com/taskboard-frontend:latest
           ports:
             - containerPort: 80
 ---
@@ -26,6 +25,7 @@ metadata:
   name: frontend
   namespace: taskboard
 spec:
+  type: LoadBalancer
   selector:
     app: frontend
   ports:

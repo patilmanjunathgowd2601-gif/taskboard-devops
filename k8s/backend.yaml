@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: taskboard-backend:local
-          imagePullPolicy: Never
+          image: 329447598191.dkr.ecr.ap-south-1.amazonaws.com/taskboard-backend:latest
           ports:
             - containerPort: 5000
           env:

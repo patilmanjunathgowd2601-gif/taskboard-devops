@@ -22,6 +22,10 @@ resource "aws_eks_cluster" "main" {
   vpc_config {
     subnet_ids = aws_subnet.public[*].id
   }
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
 

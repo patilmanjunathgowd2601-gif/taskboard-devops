@@ -1,0 +1,65 @@
+name: CD - Deploy to EKS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        run: |
+          docker build -t $ECR_REGISTRY/taskboard-backend:${{ github.sha }} -t $ECR_REGISTRY/taskboard-backend:latest ./backend
+          docker push $ECR_REGISTRY/taskboard-backend:${{ github.sha }}
+          docker push $ECR_REGISTRY/taskboard-backend:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build -t $ECR_REGISTRY/taskboard-frontend:${{ github.sha }} -t $ECR_REGISTRY/taskboard-frontend:latest ./frontend
+          docker push $ECR_REGISTRY/taskboard-frontend:${{ github.sha }}
+          docker push $ECR_REGISTRY/taskboard-frontend:latest
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+      - name: Ensure namespace exists
+        run: kubectl create namespace taskboard --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply manifests
+        run: |
+          kubectl apply -f k8s/mongo.yaml
+          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/frontend.yaml
+
+      - name: Roll out new images
+        run: |
+          kubectl set image deployment/backend backend=$ECR_REGISTRY/taskboard-backend:${{ github.sha }} -n taskboard
+          kubectl set image deployment/frontend frontend=$ECR_REGISTRY/taskboard-frontend:${{ github.sha }} -n taskboard
+          kubectl rollout status deployment/backend -n taskboard --timeout=180s
+          kubectl rollout status deployment/frontend -n taskboard --timeout=180s
+
+      - name: Show frontend service (LoadBalancer)
+        run: kubectl get svc frontend -n taskboard
