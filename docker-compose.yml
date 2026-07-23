@@ -1,0 +1,34 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - taskboard-net
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/taskboard
+    depends_on:
+      - mongo
+    networks:
+      - taskboard-net
+
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db
+      - ./database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - taskboard-net
+
+networks:
+  taskboard-net:
+
+volumes:
+  mongo-data:

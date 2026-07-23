@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TaskBoard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>TaskBoard</h1>
+    <span class="badge" id="api-status">checking API...</span>
+  </header>
+  <main class="container">
+    <section class="card">
+      <h2>Add a task</h2>
+      <form id="task-form">
+        <input type="text" id="title" placeholder="Task title" required />
+        <textarea id="description" placeholder="Description (optional)"></textarea>
+        <button type="submit">Add Task</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Tasks</h2>
+      <ul id="task-list" class="task-list"></ul>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
